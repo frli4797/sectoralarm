@@ -127,4 +127,4 @@ $RECYCLE.BIN/
 *.lnk
 
 .gitignore
-.idea/*
+.idea/
