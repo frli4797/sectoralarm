@@ -2,11 +2,12 @@
 
 ## Information
 A simple library for Sector Alarm API written in Python 3.
+The code is heavily based on this project: https://github.com/the-louie/sectoralarm
 
 ## Installation
-Install with pip
+Install with pip3
 ```
-$ sudo pip install sectoralarm
+$ sudo pip3 install sectoralarm
 ```
 
 ## Code examples

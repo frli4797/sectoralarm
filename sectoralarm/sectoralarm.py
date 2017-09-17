@@ -28,7 +28,7 @@ import re
 
 import requests
 
-from HTML import ParseHTMLToken
+from .HTML import ParseHTMLToken
 
 
 def log(message):
