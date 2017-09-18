@@ -25,6 +25,7 @@ import datetime
 import json
 import os
 import re
+import tempfile
 
 import requests
 
@@ -62,7 +63,7 @@ class connect(object):
     __check_page = 'https://mypagesapi.sectoralarm.net/'
     __status_page = 'https://mypagesapi.sectoralarm.net/Panel/GetOverview/'
     __log_page = 'https://mypagesapi.sectoralarm.net/Panel/GetPanelHistory/'
-    __cookie_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'cookies.jar')
+    __cookie_file = os.path.join(tempfile.gettempdir(), 'cookies.jar')
 
     # Class constructor
     def __init__(self, email, password, site_id):
