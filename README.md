@@ -2,6 +2,7 @@
 
 ## Information
 A simple library for Sector Alarm API written in Python 3.
+
 The code is heavily based on this project: https://github.com/the-louie/sectoralarm
 
 ## Installation
@@ -25,7 +26,7 @@ sector_alarm = sectoralarm.connect(email, password, site_id)
 
 current_status = sector_alarm.status()
 if current_status:
-    print("Status: %d W" % current_status)
+    print(current_status)
 ```
 Example output:
 ```
