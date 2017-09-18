@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='sectoralarm',
-    version='0.1',
+    version='1.0.0',
     packages=['sectoralarm'],
     url='https://github.com/MikaelSchultz/sectoralarm',
     license='MIT License',

@@ -15,3 +15,5 @@ __pycache__/
 .gitignore
 .idea/
 /sectoralarm/cookies.jar
+MANIFEST
+build/
