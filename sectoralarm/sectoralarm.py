@@ -63,12 +63,12 @@ class connect(object):
     __check_page = 'https://mypagesapi.sectoralarm.net/'
     __status_page = 'https://mypagesapi.sectoralarm.net/Panel/GetOverview/'
     __log_page = 'https://mypagesapi.sectoralarm.net/Panel/GetPanelHistory/'
-    __arm_panel = 'https://minasidor.sectoralarm.se/Panel/ArmPanel'
+    __arm_panel = 'https://mypagesapi.sectoralarm.se/Panel/ArmPanel'
     
     __cookie_file = os.path.join(tempfile.gettempdir(), 'cookies.jar')
 
     # Class constructor
-    def __init__(self, email, password, site_id, panel_code = '0000'):
+    def __init__(self, email, password, site_id, panel_code):
         self.__email = email
         self.__password = password
         self.__site_id = site_id
@@ -99,32 +99,38 @@ class connect(object):
         return response_dict
 
     def __arm_annex(self):
-        
+        '''
+        Arming the annex. 
+        Returns a dict with the status as received from the api.
+        '''
         payload = {
                 'ArmCmd':'ArmAnnex',
-                'PanelCode': self.__panelcode,
+                'PanelCode': self.__panel_code,
                 'HasLocks': 'False',
-                'id':'02581279'
+                'id': self.__site_id
                 }
         
         response = self.__session.post(self.__arm_panel, data = payload) 
         
-        log(response.json().get('status', {}))
+        log('Arming the annex, status ' + response.json().get('status', {}))
         
         return { 'status' : response.json().get('status', {})}
     
     def __disarm_annex(self):
-        
+        '''
+        Disarming the annex. 
+        Returns a dict with the status as received from the api.
+        '''
         payload = {
                 'ArmCmd':'DisarmAnnex',
                 'PanelCode': self.__panel_code,
                 'HasLocks': 'False',
-                'id':'02581279'
+                'id':self.__site_id
                 }
         
         response = self.__session.post(self.__arm_panel, data = payload) 
         
-        log(response.json().get('status', {}))
+        log('Disarming the annex, status ' + response.json().get('status', {}))
         
         return { 'status' : response.json().get('status', {})}
 
@@ -230,14 +236,22 @@ class connect(object):
         return status
     
     def arm_annex(self):
-        
+        """
+        Wrapper function for arming the annex
+        of the alarm.
+        Returns a dict with the status as received from the api.
+        """
         self.__login()
         
         result = self.__arm_annex()
         return result
     
     def disarm_annex(self):
-        
+        """
+        Wrapper function for disarming the annex
+        of the alarm.
+        Returns a dict with the status as received from the api.
+        """        
         self.__login()
         
         result = self.__disarm_annex()
