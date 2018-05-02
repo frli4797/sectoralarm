@@ -63,7 +63,7 @@ class connect(object):
     __check_page = 'https://mypagesapi.sectoralarm.net/'
     __status_page = 'https://mypagesapi.sectoralarm.net/Panel/GetOverview/'
     __log_page = 'https://mypagesapi.sectoralarm.net/Panel/GetPanelHistory/'
-    __arm_panel = 'https://mypagesapi.sectoralarm.se/Panel/ArmPanel'
+    __arm_panel = 'https://minasidor.sectoralarm.se/Panel/ArmPanel'
     
     __cookie_file = os.path.join(tempfile.gettempdir(), 'cookies.jar')
 
