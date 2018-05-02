@@ -68,11 +68,12 @@ class connect(object):
     __cookie_file = os.path.join(tempfile.gettempdir(), 'cookies.jar')
 
     # Class constructor
-    def __init__(self, email, password, site_id):
+    def __init__(self, email, password, site_id, panel_code = '0000'):
         self.__email = email
         self.__password = password
         self.__site_id = site_id
         self.__session = requests.Session()
+        self.__panel_code = panel_code
 
     # Do an initial request to get the CSRF-token
     def __get_csrf_token(self):
@@ -101,7 +102,7 @@ class connect(object):
         
         payload = {
                 'ArmCmd':'ArmAnnex',
-                'PanelCode':'6827',
+                'PanelCode': self.__panelcode,
                 'HasLocks': 'False',
                 'id':'02581279'
                 }
@@ -116,7 +117,7 @@ class connect(object):
         
         payload = {
                 'ArmCmd':'DisarmAnnex',
-                'PanelCode':'6827',
+                'PanelCode': self.__panel_code,
                 'HasLocks': 'False',
                 'id':'02581279'
                 }
