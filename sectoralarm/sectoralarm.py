@@ -63,6 +63,8 @@ class connect(object):
     __check_page = 'https://mypagesapi.sectoralarm.net/'
     __status_page = 'https://mypagesapi.sectoralarm.net/Panel/GetOverview/'
     __log_page = 'https://mypagesapi.sectoralarm.net/Panel/GetPanelHistory/'
+    __arm_panel = 'https://minasidor.sectoralarm.se/Panel/ArmPanel'
+    
     __cookie_file = os.path.join(tempfile.gettempdir(), 'cookies.jar')
 
     # Class constructor
@@ -88,8 +90,44 @@ class connect(object):
         Fetch and parse the actual alarm status page.
         '''
         response = self.__session.post(self.__status_page)
-        return {'AlarmStatus': response.json().get('Panel', {}).get('ArmedStatus', None)}
+        
+        response_dict = {'AlarmStatus': response.json().get('Panel', {}).get('ArmedStatus', None)}
+        response_dict['StatusAnnex'] = response.json().get('Panel', {}).get('StatusAnnex', None)
+        response_dict['AnnexAvailable'] = response.json().get('Panel', {}).get('AnnexAvailable', None)
+        
+        return response_dict
 
+    def __arm_annex(self):
+        
+        payload = {
+                'ArmCmd':'ArmAnnex',
+                'PanelCode':'6827',
+                'HasLocks': 'False',
+                'id':'02581279'
+                }
+        
+        response = self.__session.post(self.__arm_panel, data = payload) 
+        
+        log(response.json().get('status', {}))
+        
+        return { 'status' : response.json().get('status', {})}
+    
+    def __disarm_annex(self):
+        
+        payload = {
+                'ArmCmd':'DisarmAnnex',
+                'PanelCode':'6827',
+                'HasLocks': 'False',
+                'id':'02581279'
+                }
+        
+        response = self.__session.post(self.__arm_panel, data = payload) 
+        
+        log(response.json().get('status', {}))
+        
+        return { 'status' : response.json().get('status', {})}
+
+    
     def __get_log(self):
         '''
         Fetch and parse the event log page.
@@ -189,3 +227,17 @@ class connect(object):
         # Get the status
         status = self.__get_status()
         return status
+    
+    def arm_annex(self):
+        
+        self.__login()
+        
+        result = self.__arm_annex()
+        return result
+    
+    def disarm_annex(self):
+        
+        self.__login()
+        
+        result = self.__disarm_annex()
+        return result
