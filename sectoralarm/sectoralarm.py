@@ -59,10 +59,10 @@ def fix_date(date_string):
 class connect(object):
     """ The class that returns the current status of the alarm. """
 
-    __login_page = 'https://mypagesapi.sectoralarm.net/User/Login'
-    __check_page = 'https://mypagesapi.sectoralarm.net/'
-    __status_page = 'https://mypagesapi.sectoralarm.net/Panel/GetOverview/'
-    __log_page = 'https://mypagesapi.sectoralarm.net/Panel/GetPanelHistory/'
+    __login_page = 'https://minasidor.sectoralarm.se/User/Login'
+    __check_page = 'https://minasidor.sectoralarm.se/'
+    __status_page = 'https://minasidor.sectoralarm.se/Panel/GetOverview/'
+    __log_page = 'https://minasidor.sectoralarm.se/Panel/GetPanelHistory/'
     __arm_panel = 'https://minasidor.sectoralarm.se/Panel/ArmPanel'
     
     __cookie_file = os.path.join(tempfile.gettempdir(), 'cookies.jar')
@@ -185,6 +185,9 @@ class connect(object):
         Check if we're logged in.
         Returns bool
         '''
+        # TODO: Check for requests.exceptions.ConnectionError
+        
+        
         response = self.__session.get(self.__check_page)
         loggedin = ('frmLogin' not in response.text)
         return loggedin
@@ -196,6 +199,9 @@ class connect(object):
         login again.
         '''
         self.__load_cookies()
+
+        # TODO: Check for requests.exceptions.ConnectionError
+       
 
         if not self.__is_logged_in():
             log('Logging in')
