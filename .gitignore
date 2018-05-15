@@ -17,3 +17,5 @@ __pycache__/
 /sectoralarm/cookies.jar
 MANIFEST
 build/
+/.pydevproject
+/.project

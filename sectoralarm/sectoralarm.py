@@ -59,18 +59,21 @@ def fix_date(date_string):
 class connect(object):
     """ The class that returns the current status of the alarm. """
 
-    __login_page = 'https://mypagesapi.sectoralarm.net/User/Login'
-    __check_page = 'https://mypagesapi.sectoralarm.net/'
-    __status_page = 'https://mypagesapi.sectoralarm.net/Panel/GetOverview/'
-    __log_page = 'https://mypagesapi.sectoralarm.net/Panel/GetPanelHistory/'
+    __login_page = 'https://minasidor.sectoralarm.se/User/Login'
+    __check_page = 'https://minasidor.sectoralarm.se/'
+    __status_page = 'https://minasidor.sectoralarm.se/Panel/GetOverview/'
+    __log_page = 'https://minasidor.sectoralarm.se/Panel/GetPanelHistory/'
+    __arm_panel = 'https://minasidor.sectoralarm.se/Panel/ArmPanel'
+    
     __cookie_file = os.path.join(tempfile.gettempdir(), 'cookies.jar')
 
     # Class constructor
-    def __init__(self, email, password, site_id):
+    def __init__(self, email, password, site_id, panel_code):
         self.__email = email
         self.__password = password
         self.__site_id = site_id
         self.__session = requests.Session()
+        self.__panel_code = panel_code
 
     # Do an initial request to get the CSRF-token
     def __get_csrf_token(self):
@@ -88,8 +91,50 @@ class connect(object):
         Fetch and parse the actual alarm status page.
         '''
         response = self.__session.post(self.__status_page)
-        return {'AlarmStatus': response.json().get('Panel', {}).get('ArmedStatus', None)}
+        
+        response_dict = {'AlarmStatus': response.json().get('Panel', {}).get('ArmedStatus', None)}
+        response_dict['StatusAnnex'] = response.json().get('Panel', {}).get('StatusAnnex', None)
+        response_dict['AnnexAvailable'] = response.json().get('Panel', {}).get('AnnexAvailable', None)
+        
+        return response_dict
 
+    def __arm_annex(self):
+        '''
+        Arming the annex. 
+        Returns a dict with the status as received from the api.
+        '''
+        payload = {
+                'ArmCmd':'ArmAnnex',
+                'PanelCode': self.__panel_code,
+                'HasLocks': 'False',
+                'id': self.__site_id
+                }
+        
+        response = self.__session.post(self.__arm_panel, data = payload) 
+        
+        log('Arming the annex, status ' + response.json().get('status', {}))
+        
+        return { 'status' : response.json().get('status', {})}
+    
+    def __disarm_annex(self):
+        '''
+        Disarming the annex. 
+        Returns a dict with the status as received from the api.
+        '''
+        payload = {
+                'ArmCmd':'DisarmAnnex',
+                'PanelCode': self.__panel_code,
+                'HasLocks': 'False',
+                'id':self.__site_id
+                }
+        
+        response = self.__session.post(self.__arm_panel, data = payload) 
+        
+        log('Disarming the annex, status ' + response.json().get('status', {}))
+        
+        return { 'status' : response.json().get('status', {})}
+
+    
     def __get_log(self):
         '''
         Fetch and parse the event log page.
@@ -140,6 +185,9 @@ class connect(object):
         Check if we're logged in.
         Returns bool
         '''
+        # TODO: Check for requests.exceptions.ConnectionError
+        
+        
         response = self.__session.get(self.__check_page)
         loggedin = ('frmLogin' not in response.text)
         return loggedin
@@ -151,6 +199,9 @@ class connect(object):
         login again.
         '''
         self.__load_cookies()
+
+        # TODO: Check for requests.exceptions.ConnectionError
+       
 
         if not self.__is_logged_in():
             log('Logging in')
@@ -189,3 +240,25 @@ class connect(object):
         # Get the status
         status = self.__get_status()
         return status
+    
+    def arm_annex(self):
+        """
+        Wrapper function for arming the annex
+        of the alarm.
+        Returns a dict with the status as received from the api.
+        """
+        self.__login()
+        
+        result = self.__arm_annex()
+        return result
+    
+    def disarm_annex(self):
+        """
+        Wrapper function for disarming the annex
+        of the alarm.
+        Returns a dict with the status as received from the api.
+        """        
+        self.__login()
+        
+        result = self.__disarm_annex()
+        return result
