@@ -91,7 +91,7 @@ class connect(object):
         Fetch and parse the actual alarm status page.
         '''
         response = self.__session.post(self.__status_page)
-        
+
         response_dict = {'AlarmStatus': response.json().get('Panel', {}).get('ArmedStatus', None)}
         response_dict['StatusAnnex'] = response.json().get('Panel', {}).get('StatusAnnex', None)
         response_dict['AnnexAvailable'] = response.json().get('Panel', {}).get('AnnexAvailable', None)
@@ -185,12 +185,15 @@ class connect(object):
         Check if we're logged in.
         Returns bool
         '''
-        # TODO: Check for requests.exceptions.ConnectionError
-        
-        
-        response = self.__session.get(self.__check_page)
-        loggedin = ('frmLogin' not in response.text)
-        return loggedin
+        response = self.__session.post(self.__status_page)
+        if(response.status_code == 401):
+            log('Got Unauthorized (401). Assuming that we are not logged in.')
+            return False;
+        elif(response.status_code == 200):
+            return True;
+        else:
+            response.raise_for_status();
+
 
     def __login(self):
         '''
@@ -201,8 +204,6 @@ class connect(object):
         self.__load_cookies()
 
         # TODO: Check for requests.exceptions.ConnectionError
-       
-
         if not self.__is_logged_in():
             log('Logging in')
             form_data = {
