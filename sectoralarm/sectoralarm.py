@@ -60,7 +60,7 @@ class connect(object):
     """ The class that returns the current status of the alarm. """
 
     __login_page = 'https://minasidor.sectoralarm.se/User/Login'
-    __check_page = 'https://minasidor.sectoralarm.se/'
+    __check_page = 'https://minasidor.sectoralarm.se/User/GetUserInfo/'
     __status_page = 'https://minasidor.sectoralarm.se/Panel/GetOverview/'
     __log_page = 'https://minasidor.sectoralarm.se/Panel/GetPanelHistory/'
     __arm_panel = 'https://minasidor.sectoralarm.se/Panel/ArmPanel'
@@ -79,6 +79,7 @@ class connect(object):
     def __get_csrf_token(self):
 
         response = self.__session.get(self.__login_page)
+        response.raise_for_status()
         parser = ParseHTMLToken()
         parser.feed(response.text)
         if not parser.tokens[0]:
@@ -91,6 +92,7 @@ class connect(object):
         Fetch and parse the actual alarm status page.
         '''
         response = self.__session.post(self.__status_page)
+        response.raise_for_status()
 
         response_dict = {'AlarmStatus': response.json().get('Panel', {}).get('ArmedStatus', None)}
         response_dict['StatusAnnex'] = response.json().get('Panel', {}).get('StatusAnnex', None)
@@ -111,6 +113,7 @@ class connect(object):
                 }
         
         response = self.__session.post(self.__arm_panel, data = payload) 
+        response.raise_for_status()
         
         log('Arming the annex, status ' + response.json().get('status', {}))
         
@@ -129,6 +132,7 @@ class connect(object):
                 }
         
         response = self.__session.post(self.__arm_panel, data = payload) 
+        response.raise_for_status()
         
         log('Disarming the annex, status ' + response.json().get('status', {}))
         
@@ -140,6 +144,7 @@ class connect(object):
         Fetch and parse the event log page.
         '''
         response = self.__session.get(self.__log_page + self.__site_id)
+        response.raise_for_status()
         event_log = []
         for row in (response.json())['LogDetails']:
             row_data = row.copy()
@@ -185,7 +190,7 @@ class connect(object):
         Check if we're logged in.
         Returns bool
         '''
-        response = self.__session.post(self.__status_page)
+        response = self.__session.get(self.__check_page)
         if(response.status_code == 401):
             log('Got Unauthorized (401). Assuming that we are not logged in.')
             return False;
@@ -215,8 +220,8 @@ class connect(object):
             form_data['__RequestVerificationToken'] = self.__get_csrf_token()
 
             # Do the actual logging in.
-            self.__session.post(self.__login_page + '?Returnurl=~%2F', data=form_data)
-
+            response = self.__session.post(self.__login_page + '?Returnurl=~%2F', data=form_data)
+            response.raise_for_status()
             # Save the cookies to file.
             self.__save_cookies()
         else:
