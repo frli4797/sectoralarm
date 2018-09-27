@@ -45,10 +45,9 @@ def fix_user(user_string):
 
 def fix_date(date_string):
     """ Convert the Sector Alarm way of stating dates to something sane (ISO compliant). """
-    result = ""
     try:
         epoch = re.search(r'/Date\(([0-9]+?)\)/', date_string).group(1)
-        date = datetime.datetime.fromtimestamp(int(epoch)/1000)
+        date = datetime.datetime.fromtimestamp(int(epoch) / 1000)
         result = date.isoformat()
     except AttributeError:
         result = ""
@@ -56,7 +55,7 @@ def fix_date(date_string):
     return result
 
 
-class connect(object):
+class Connect(object):
     """ The class that returns the current status of the alarm. """
 
     __login_page = 'https://minasidor.sectoralarm.se/User/Login'
@@ -64,16 +63,19 @@ class connect(object):
     __status_page = 'https://minasidor.sectoralarm.se/Panel/GetOverview/'
     __log_page = 'https://minasidor.sectoralarm.se/Panel/GetPanelHistory/'
     __arm_panel = 'https://minasidor.sectoralarm.se/Panel/ArmPanel'
-    
+    __temperatures_page = "https://minasidor.sectoralarm.se/Panel/GetTempratures"
+
     __cookie_file = os.path.join(tempfile.gettempdir(), 'cookies.jar')
 
     # Class constructor
     def __init__(self, email, password, site_id, panel_code):
+
         self.__email = email
         self.__password = password
         self.__site_id = site_id
         self.__session = requests.Session()
         self.__panel_code = panel_code
+        self.__temperatures_page = self.__temperatures_page + "/" + site_id
 
     # Do an initial request to get the CSRF-token
     def __get_csrf_token(self):
@@ -88,61 +90,114 @@ class connect(object):
         return parser.tokens[0]
 
     def __get_status(self):
-        '''
+        """
         Fetch and parse the actual alarm status page.
-        '''
+        """
         response = self.__session.post(self.__status_page)
         response.raise_for_status()
 
-        response_dict = {'AlarmStatus': response.json().get('Panel', {}).get('ArmedStatus', None)}
-        response_dict['StatusAnnex'] = response.json().get('Panel', {}).get('StatusAnnex', None)
-        response_dict['AnnexAvailable'] = response.json().get('Panel', {}).get('AnnexAvailable', None)
-        
+        response_dict = {'AlarmStatus': response.json().get('Panel', {}).get('ArmedStatus', None),
+                         'StatusAnnex': response.json().get('Panel', {}).get('StatusAnnex', None),
+                         'AnnexAvailable': response.json().get('Panel', {}).get('AnnexAvailable', None)}
+
         return response_dict
 
     def __arm_annex(self):
-        '''
-        Arming the annex. 
+        """
+        Arming the annex.
         Returns a dict with the status as received from the api.
-        '''
+        """
         payload = {
-                'ArmCmd':'ArmAnnex',
-                'PanelCode': self.__panel_code,
-                'HasLocks': 'False',
-                'id': self.__site_id
-                }
-        
-        response = self.__session.post(self.__arm_panel, data = payload) 
-        response.raise_for_status()
-        
-        log('Arming the annex, status ' + response.json().get('status', {}))
-        
-        return { 'status' : response.json().get('status', {})}
-    
-    def __disarm_annex(self):
-        '''
-        Disarming the annex. 
-        Returns a dict with the status as received from the api.
-        '''
-        payload = {
-                'ArmCmd':'DisarmAnnex',
-                'PanelCode': self.__panel_code,
-                'HasLocks': 'False',
-                'id':self.__site_id
-                }
-        
-        response = self.__session.post(self.__arm_panel, data = payload) 
-        response.raise_for_status()
-        
-        log('Disarming the annex, status ' + response.json().get('status', {}))
-        
-        return { 'status' : response.json().get('status', {})}
+            'ArmCmd': 'ArmAnnex',
+            'PanelCode': self.__panel_code,
+            'HasLocks': 'False',
+            'id': self.__site_id
+        }
 
-    
+        response = self.__session.post(self.__arm_panel, data=payload)
+        response.raise_for_status()
+
+        log('Arming the annex, status ' + response.json().get('status', {}))
+
+        return {'status': response.json().get('status', {})}
+
+    def __arm(self):
+        """
+        Arming the annex.
+        Returns a dict with the status as received from the api.
+        """
+        payload = {
+            'ArmCmd': 'Total',
+            'PanelCode': self.__panel_code,
+            'HasLocks': 'False',
+            'id': self.__site_id
+        }
+
+        response = self.__session.post(self.__arm_panel, data=payload)
+        print(response.text)
+        log('Arming the house, status ' + response.json().get('status', {}))
+
+        return {'status': response.json().get('status', {})}
+
+    def __arm_partial(self):
+        """
+        Arming the annex.
+        Returns a dict with the status as received from the api.
+        """
+        payload = {
+            'ArmCmd': 'Partial',
+            'PanelCode': self.__panel_code,
+            'HasLocks': 'False',
+            'id': self.__site_id
+        }
+
+        response = self.__session.post(self.__arm_panel, data=payload)
+
+        log('Arming the house, status ' + response.json().get('status', {}))
+
+        return {'status': response.json().get('status', {})}
+
+    def __disarm(self):
+        """
+        Disarming the house.
+        Returns a dict with the status as received from the api.
+        """
+        payload = {
+            'ArmCmd': 'Disarm',
+            'PanelCode': self.__panel_code,
+            'HasLocks': 'False',
+            'id': self.__site_id
+        }
+
+        response = self.__session.post(self.__arm_panel, data=payload)
+
+        log('Disarming the annex, status ' + response.json().get('status', {}))
+
+        return {'status': response.json().get('status', {})}
+
+    def __disarm_annex(self):
+        """
+        Disarming the annex.
+        Returns a dict with the status as received from the api.
+        """
+        payload = {
+            'ArmCmd': 'DisarmAnnex',
+            'PanelCode': self.__panel_code,
+            'HasLocks': 'False',
+            'id': self.__site_id
+        }
+
+        response = self.__session.post(self.__arm_panel, data=payload)
+        response.raise_for_status()
+
+        log('Disarming the annex, status ' + response.json().get('status', {}))
+
+        return {'status': response.json().get('status', {})}
+
     def __get_log(self):
-        '''
+        """
         Fetch and parse the event log page.
-        '''
+        """
         response = self.__session.get(self.__log_page + self.__site_id)
         response.raise_for_status()
         event_log = []
@@ -153,11 +208,28 @@ class connect(object):
 
         return event_log
 
+    def __get_temperatures(self):
+        """
+        Get the temperatures (if any) from the alarm system.
+        :return:
+        """
+        response = self.__session.get(self.__temperatures_page)
+        response.raise_for_status()
+
+        temperatures = []
+        for row in (response.json()):
+            temperatures.append({
+                "Room": row.get("Label"),
+                "Temperature": row.get("Temprature")
+            })
+
+        return temperatures
+
     def __save_cookies(self):
-        '''
+        """
         Store the cookie-jar on disk to avoid having to login
         each time the script is run.
-        '''
+        """
         with open(self.__cookie_file, 'w') as cookie_file:
             json.dump(
                 requests.utils.dict_from_cookiejar(self.__session.cookies),
@@ -168,10 +240,10 @@ class connect(object):
                 self.__session.cookies).keys())))
 
     def __load_cookies(self):
-        '''
+        """
         Load the cookies from the cookie-jar to avoid logging
         in again if the session still is valid.
-        '''
+        """
         try:
             with open(self.__cookie_file, 'r') as cookie_file:
                 self.__session.cookies = requests.utils.cookiejar_from_dict(
@@ -186,26 +258,25 @@ class connect(object):
                 self.__session.cookies).keys())))
 
     def __is_logged_in(self):
-        '''
+        """
         Check if we're logged in.
         Returns bool
-        '''
+        """
         response = self.__session.get(self.__check_page)
-        if(response.status_code == 401):
+        if response.status_code == 401:
             log('Got Unauthorized (401). Assuming that we are not logged in.')
-            return False;
-        elif(response.status_code == 200):
-            return True;
+            return False
+        elif response.status_code == 200:
+            return True
         else:
-            response.raise_for_status();
-
+            response.raise_for_status()
 
     def __login(self):
-        '''
+        """
         Login to the site if we're not logged in already. First try any
         existing session from the stored cookie. If that fails we should
         login again.
-        '''
+        """
         self.__load_cookies()
 
         # TODO: Check for requests.exceptions.ConnectionError
@@ -227,6 +298,14 @@ class connect(object):
         else:
             log('Already logged in')
 
+    def temp(self):
+        """
+        Retrieve the temperatures.
+        """
+        self.__login()
+
+        return self.__get_temperatures()
+
     def event_log(self):
         """
         Retrieve the event log, login if necessary.
@@ -246,7 +325,38 @@ class connect(object):
         # Get the status
         status = self.__get_status()
         return status
-    
+
+    def arm(self):
+        """
+        Wrapper function for arming the house.
+        of the alarm.
+        Returns a dict with the status as received from the api.
+        """
+        self.__login()
+
+        result = self.__arm()
+        return result
+
+    def arm_partial(self):
+        """
+        Wrapper function for partially arming the house.
+        Returns a dict with the status as received from the api.
+        """
+        self.__login()
+
+        result = self.__arm_partial()
+        return result
+
+    def disarm(self):
+        """
+        Wrapper function for disarming the house.
+        Returns a dict with the status as received from the api.
+        """
+        self.__login()
+
+        result = self.__disarm()
+        return result
+
     def arm_annex(self):
         """
         Wrapper function for arming the annex
@@ -254,17 +364,24 @@ class connect(object):
         Returns a dict with the status as received from the api.
         """
         self.__login()
-        
+
         result = self.__arm_annex()
         return result
-    
+
     def disarm_annex(self):
         """
         Wrapper function for disarming the annex
         of the alarm.
         Returns a dict with the status as received from the api.
-        """        
+        """
         self.__login()
-        
+
         result = self.__disarm_annex()
         return result
+
+    def __del__(self):
+        """
+        Making sure to close the session.
+        :return:
+        """
+        self.__session.close()
