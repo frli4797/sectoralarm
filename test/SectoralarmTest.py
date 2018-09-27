@@ -1,8 +1,7 @@
 import unittest
 import sectoralarm
 import configparser
-
-
+  
 class SectorAlarmTest(unittest.TestCase):
 
     def setUp(self):
@@ -27,6 +26,11 @@ class SectorAlarmTest(unittest.TestCase):
     def test_arm(self):
         alarm = sectoralarm.sectoralarm.Connect(self.email, self.password, self.siteId, self.panel_code)
         result = alarm.arm()
+        self.assertEqual('success', result['status'], 'Msg')
+
+    def test_arm_partial(self):
+        alarm = sectoralarm.sectoralarm.Connect(self.email, self.password, self.siteId, self.panel_code)
+        result = alarm.arm_partial()
         self.assertEqual('success', result['status'], 'Msg')
 
     def test_disarm(self):
