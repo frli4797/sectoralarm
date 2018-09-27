@@ -14,8 +14,11 @@ __pycache__/
 
 .gitignore
 .idea/
+*.iml
 /sectoralarm/cookies.jar
+/test/testconfig.cfg
 MANIFEST
 build/
 /.pydevproject
 /.project
+
