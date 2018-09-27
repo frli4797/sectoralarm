@@ -56,7 +56,7 @@ def fix_date(date_string):
     return result
 
 
-class connect(object):
+class Connect(object):
     """ The class that returns the current status of the alarm. """
 
     __login_page = 'https://minasidor.sectoralarm.se/User/Login'
@@ -88,9 +88,9 @@ class connect(object):
         return parser.tokens[0]
 
     def __get_status(self):
-        '''
+        """
         Fetch and parse the actual alarm status page.
-        '''
+        """
         response = self.__session.post(self.__status_page)
         response.raise_for_status()
 
@@ -101,10 +101,10 @@ class connect(object):
         return response_dict
 
     def __arm_annex(self):
-        '''
-        Arming the annex. 
+        """
+        Arming the annex.
         Returns a dict with the status as received from the api.
-        '''
+        """
         payload = {
                 'ArmCmd':'ArmAnnex',
                 'PanelCode': self.__panel_code,
@@ -118,12 +118,67 @@ class connect(object):
         log('Arming the annex, status ' + response.json().get('status', {}))
         
         return { 'status' : response.json().get('status', {})}
-    
-    def __disarm_annex(self):
-        '''
-        Disarming the annex. 
+
+    def __arm(self):
+        """
+        Arming the annex.
         Returns a dict with the status as received from the api.
-        '''
+        """
+        payload = {
+            'ArmCmd': 'Total',
+            'PanelCode': self.__panel_code,
+            'HasLocks': 'False',
+            'id': self.__site_id
+        }
+
+        response = self.__session.post(self.__arm_panel, data=payload)
+        print(response.text)
+        log('Arming the house, status ' + response.json().get('status', {}))
+
+        return {'status': response.json().get('status', {})}
+
+    def __arm_partial(self):
+        """
+        Arming the annex.
+        Returns a dict with the status as received from the api.
+        """
+        payload = {
+            'ArmCmd': 'Partial',
+            'PanelCode': self.__panel_code,
+            'HasLocks': 'False',
+            'id': self.__site_id
+        }
+
+        response = self.__session.post(self.__arm_panel, data=payload)
+
+        log('Arming the house, status ' + response.json().get('status', {}))
+
+        return {'status': response.json().get('status', {})}
+
+
+    def __disarm(self):
+        """
+        Disarming the house.
+        Returns a dict with the status as received from the api.
+        """
+        payload = {
+            'ArmCmd': 'Disarm',
+            'PanelCode': self.__panel_code,
+            'HasLocks': 'False',
+            'id': self.__site_id
+        }
+
+        response = self.__session.post(self.__arm_panel, data=payload)
+
+        log('Disarming the annex, status ' + response.json().get('status', {}))
+
+        return {'status': response.json().get('status', {})}
+
+    def __disarm_annex(self):
+        """
+        Disarming the annex.
+        Returns a dict with the status as received from the api.
+        """
         payload = {
                 'ArmCmd':'DisarmAnnex',
                 'PanelCode': self.__panel_code,
@@ -138,7 +193,6 @@ class connect(object):
         
         return { 'status' : response.json().get('status', {})}
 
-    
     def __get_log(self):
         '''
         Fetch and parse the event log page.
@@ -246,7 +300,38 @@ class connect(object):
         # Get the status
         status = self.__get_status()
         return status
-    
+
+    def arm(self):
+        """
+        Wrapper function for arming the house.
+        of the alarm.
+        Returns a dict with the status as received from the api.
+        """
+        self.__login()
+
+        result = self.__arm()
+        return result
+
+    def arm_partial(self):
+        """
+        Wrapper function for partially arming the house.
+        Returns a dict with the status as received from the api.
+        """
+        self.__login()
+
+        result = self.__arm_partial()
+        return result
+
+    def disarm(self):
+        """
+        Wrapper function for disarming the house.
+        Returns a dict with the status as received from the api.
+        """
+        self.__login()
+
+        result = self.__disarm()
+        return result
+
     def arm_annex(self):
         """
         Wrapper function for arming the annex
