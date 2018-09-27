@@ -21,8 +21,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from .sectoralarm import connect
+from .sectoralarm import Connect
 from .HTML import ParseHTMLToken
 
-__all__ = ["connect", "ParseHTMLToken"]
-__version__ = "1.0.2"
+__all__ = ["Connect", "ParseHTMLToken"]
+__version__ = "1.0.2.3"
