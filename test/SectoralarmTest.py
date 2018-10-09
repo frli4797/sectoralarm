@@ -1,8 +1,7 @@
 import unittest
 import sectoralarm
 import configparser
-
-
+  
 class SectorAlarmTest(unittest.TestCase):
 
     def setUp(self):
