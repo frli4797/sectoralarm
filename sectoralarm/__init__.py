@@ -25,4 +25,4 @@ from .sectoralarm import Connect
 from .HTML import ParseHTMLToken
 
 __all__ = ["Connect", "ParseHTMLToken"]
-__version__ = "1.0.2.3"
+__version__ = "1.0.2.4"
