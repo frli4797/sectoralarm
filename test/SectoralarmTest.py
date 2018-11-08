@@ -13,7 +13,14 @@ class SectorAlarmTest(unittest.TestCase):
         self.password = config.get('Alarm', 'password')
         self.siteId = config.get('Alarm', 'siteId')
         self.panel_code = config.get('Alarm', 'panel_code')
-      
+
+    def test_temps(self):
+        alarm = sectoralarm.sectoralarm.Connect(self.email, self.password, self.siteId, self.panel_code)
+        temperatures = alarm.temp()
+        self.assertGreater(len(temperatures), 2, "Size should be non zero.")
+        atemp = temperatures[1].get('Temperature')
+        self.assertGreaterEqual(int(atemp), 0, "Should have a temperature.")
+
     def test_status(self):
         alarm = sectoralarm.sectoralarm.Connect(self.email, self.password, self.siteId, self.panel_code)
         current_status = alarm.status()
@@ -43,7 +50,7 @@ class SectorAlarmTest(unittest.TestCase):
         alarm = sectoralarm.sectoralarm.Connect(self.email, self.password, self.siteId, self.panel_code)
         result = alarm.arm_annex()
         self.assertEqual('success', result['status'], 'Msg')
-    
+
     def test_disarm_annex(self):
         alarm = sectoralarm.sectoralarm.Connect(self.email, self.password, self.siteId, self.panel_code)
         result = alarm.disarm_annex()
